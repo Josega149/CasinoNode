@@ -33,74 +33,192 @@ for(var i=1;i<=36 ;i++){
   }
 }
 
+var currentGame = restart();
 
-var currentGame={};
-currentGame.minBet = -1;
-currentGame.money=0;
-currentGame.casinoName="test";
-
-//---------------------------- statistics
-currentGame.numZero=0;
-currentGame.numZeroZero=0;
-//color
-//zerozero = black
-//zero = red
-currentGame.numRed=0;
-currentGame.numBlack=0;
-//firstHalf  0 firstHalf 1 secondHalf
-//zerozero = 1
-//zero = 0
-currentGame.num1to18=0;
-currentGame.num19to36=0;
-//parity   1 impar  0 par
-//zerozero = 1
-//zero = 0
-currentGame.numOdd=0; //impar
-currentGame.numEven=0;
-
-currentGame.numRow1=0;
-currentGame.numRow2=0;
-currentGame.numRow3=0;
-
-currentGame.numDozen1=0;
-currentGame.numDozen2=0;
-currentGame.numDozen3=0;
-
-//---------------------------- bets
-currentGame.betRed=0;
-currentGame.betBlack=0;
-
-currentGame.bet1to18=0;
-currentGame.bet19to36=0;
-
-currentGame.betOdd=0; //impar
-currentGame.betEven=0;
-
-currentGame.betRow1=0;
-currentGame.betRow2=0;
-currentGame.betRow3=0;
-
-currentGame.betDozen1=0;
-currentGame.betDozen2=0;
-currentGame.betDozen3=0;
 
 //----------------------------
+exports.restart = function(req, res){
+  var auth = req.params.auth;
+  if(auth === 'auth'){
+    var user = req.params.user;
+    currentGame = restart();
+    res.json(currentGame);
+  }
+  else{
+    var unauthorized = {unauthorized:'invalid auth token'};
+    res.json(unauthorized);
+  }
 
+};
 
 exports.addNumberToCurrentGame = function(req, res){
   var auth = req.params.auth;
   if(auth === 'auth'){
     var user = req.params.user;
     var newNumber = req.params.newNumber;
-
+    var betToAll = req.params.betToAll;
     var data = {};
     data.user = user;
     data.newNumber = newNumber;
-    res.json(data);
+    var number = parseInt(newNumber);
+    if(number>36 || number<0){
+      var unauthorized = {unauthorized:'numberOutOfBounds'};
+      res.json(unauthorized);
+    }
+    else{
+      currentGame = addNumberToCurrentGame(currentGame, newNumber);
+      res.json(currentGame);
+    }
   }
   else{
-    var unauthorized = {unauthorized:true};
-    res.json(table);
+    var unauthorized = {unauthorized:'invalid auth token'};
+    res.json(unauthorized);
   }
 
 };
+
+
+function addNumberToCurrentGame ( currentGame,  newNumber, bet){
+
+//----------------------------- update statistics
+  currentGame = updateStatistics(currentGame, newNumber);
+//----------------------------- update bets
+  currentGame = calculateBets(currentGame,newNumber,bet);
+
+
+
+  return currentGame;
+}
+function calculateBets(currentGame,newNumber, bet){
+  var field = table[newNumber];
+  var colorC = field.color;
+  var halfC = field.half;
+  var parityC = field.parity;
+  var rowC = field.row;
+  var dozenC = field.dozen;
+
+  var size = currentGame.history.length-1;
+  if(size < 1){
+    return currentGame;
+  }
+
+  var field = table[currentGame.history[size-1]];
+  var colorP = field.color;
+  var halfP = field.half;
+  var parityP = field.parity;
+  var rowP = field.row;
+  var dozenP = field.dozen;
+
+  if(colorP === colorC){//double the bet
+    currentGame.betRed*= 2;
+    currentGame.betBlack *=2;
+    if(currentGame.betRed ===0 && currentGame.betBlack===0 ){
+      if(colorC === 'b'){
+        currentGame.betRed = currentGame.minBet;
+      }
+      else{
+        currentGame.betBlack = currentGame.minBet;
+      }
+    }
+
+  }
+  else{
+    currentGame.money += currentGame.betRed + currentGame.betBlack;
+    currentGame.betRed = 0;
+    currentGame.betBlack =0;
+  }
+
+
+
+  currentGame.bet1to18=0;
+  currentGame.bet19to36=0;
+
+  currentGame.betOdd=0; //impar
+  currentGame.betEven=0;
+
+  currentGame.betRow1=0;
+  currentGame.betRow2=0;
+  currentGame.betRow3=0;
+
+  currentGame.betDozen1=0;
+  currentGame.betDozen2=0;
+  currentGame.betDozen3=0;
+  return currentGame;
+}
+
+function updateStatistics(currentGame, newNumber){
+  var field = table[newNumber];
+  var color = field.color;
+  var half = field.half;
+  var parity = field.parity;
+  var row = field.row;
+  var dozen = field.dozen;
+  currentGame.history.push(newNumber);
+  currentGame.numRed += (color === 'r')?1:0;
+  currentGame.numBlack += (color === 'b')?1:0;
+  currentGame.num1to18+= (half === 0)?1:0;
+  currentGame.num19to36+= (half === 1)?1:0;
+  currentGame.numOdd+= (parity === 1)?1:0;
+  currentGame.numEven+= (parity === 0)?1:0;
+  currentGame.numRow1+= (row === 1)?1:0;
+  currentGame.numRow2+=(row === 2)?1:0;
+  currentGame.numRow3+=(row === 3)?1:0;
+  currentGame.numDozen1+=(dozen === 1)?1:0;
+  currentGame.numDozen2+=(dozen === 2)?1:0;
+  currentGame.numDozen3+=(dozen === 3)?1:0;
+  return currentGame;
+}
+
+function restart(){
+  var currentGame={};
+  currentGame.minBet = 1000;
+  currentGame.money=0;
+  currentGame.casinoName="test";
+
+  //---------------------------- statistics
+  currentGame.history=[];
+  //TODO ADD more statistics as max bet, numero de 0s, de negras, %acierto
+  //color
+  //zerozero = black
+  //zero = red
+  currentGame.numRed=0;
+  currentGame.numBlack=0;
+  //firstHalf  0 firstHalf 1 secondHalf
+  //zerozero = 1
+  //zero = 0
+  currentGame.num1to18=0;
+  currentGame.num19to36=0;
+  //parity   1 impar  0 par
+  //zerozero = 1
+  //zero = 0
+  currentGame.numOdd=0; //impar
+  currentGame.numEven=0;
+
+  currentGame.numRow1=0;
+  currentGame.numRow2=0;
+  currentGame.numRow3=0;
+
+  currentGame.numDozen1=0;
+  currentGame.numDozen2=0;
+  currentGame.numDozen3=0;
+
+  //---------------------------- bets
+  currentGame.betRed=0;
+  currentGame.betBlack=0;
+
+  currentGame.bet1to18=0;
+  currentGame.bet19to36=0;
+
+  currentGame.betOdd=0; //impar
+  currentGame.betEven=0;
+
+  currentGame.betRow1=0;
+  currentGame.betRow2=0;
+  currentGame.betRow3=0;
+
+  currentGame.betDozen1=0;
+  currentGame.betDozen2=0;
+  currentGame.betDozen3=0;
+
+  return currentGame;
+}

@@ -37,7 +37,8 @@ app.get('/', routes.index);
 app.get('/users', user.list);
 
 app.get('/roulette/test', roulette.test);
-app.get('/:auth/:user/roulette/addNumber/:newNumber', roulette.addNumberToCurrentGame);
+app.get('/:auth/:user/roulette/addNumber/:newNumber/:betToAll', roulette.addNumberToCurrentGame);
+app.get('/:auth/:user/roulette/restart', roulette.restart);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
