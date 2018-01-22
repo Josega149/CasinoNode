@@ -7,8 +7,8 @@
 6 silly lifecycle application-name@0.0.1~prestart: no script for prestart, continuing
 7 info lifecycle application-name@0.0.1~start: application-name@0.0.1
 8 verbose lifecycle application-name@0.0.1~start: unsafe-perm in lifecycle true
-9 verbose lifecycle application-name@0.0.1~start: PATH: /usr/lib/node_modules/npm/bin/node-gyp-bin:/home/jgtamura/Documents/Projects/CasinoNode/CasinoNode/node_modules/.bin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/home/jgtamura/.local/bin:/home/jgtamura/bin
-10 verbose lifecycle application-name@0.0.1~start: CWD: /home/jgtamura/Documents/Projects/CasinoNode/CasinoNode
+9 verbose lifecycle application-name@0.0.1~start: PATH: /usr/lib/node_modules/npm/bin/node-gyp-bin:/home/jgtamura/Documents/CasinoNode/CasinoNode/node_modules/.bin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/home/jgtamura/.local/bin:/home/jgtamura/bin
+10 verbose lifecycle application-name@0.0.1~start: CWD: /home/jgtamura/Documents/CasinoNode/CasinoNode
 11 silly lifecycle application-name@0.0.1~start: Args: [ '-c', 'node app.js' ]
 12 silly lifecycle application-name@0.0.1~start: Returned: code: 1  signal: null
 13 info lifecycle application-name@0.0.1~start: Failed to exec start script
@@ -23,8 +23,8 @@
 14 verbose stack     at maybeClose (internal/child_process.js:920:16)
 14 verbose stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:230:5)
 15 verbose pkgid application-name@0.0.1
-16 verbose cwd /home/jgtamura/Documents/Projects/CasinoNode/CasinoNode
-17 error Linux 4.13.11-200.fc26.x86_64
+16 verbose cwd /home/jgtamura/Documents/CasinoNode/CasinoNode
+17 error Linux 4.14.11-200.fc26.x86_64
 18 error argv "/usr/bin/node" "/usr/bin/npm" "start"
 19 error node v6.12.0
 20 error npm  v3.10.10
