@@ -108,9 +108,9 @@ function calculateBets(currentGame,newNumber, bet){
   var halfP = field.half;
   var parityP = field.parity;
   var rowP = field.row;
-  var dozenP = field.dozen;///** no esta bien, revisar C o P -1
+  var dozenP = field.dozen;///**
 //Color
-  if(colorP === colorC || colorP === 'none'){//double the bet
+  if(colorP === colorC || colorC === 'none'){//double the bet
   currentGame.money -= (currentGame.betRed + currentGame.betBlack);
     currentGame.betRed*= 2;
     currentGame.betBlack *=2;
@@ -226,7 +226,7 @@ else{
     currentGame.money -= (currentGame.betDozen1 + currentGame.betDozen2 + currentGame.betDozen3);
     currentGame.money += (Math.max(currentGame.betDozen1 , currentGame.betDozen2 , currentGame.betDozen3)*3);
     currentGame.betDozen1=0;currentGame.betDozen2=0;currentGame.betDozen3=0;
-  }*/
+  }
 
 
 
