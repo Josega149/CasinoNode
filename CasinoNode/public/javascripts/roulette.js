@@ -56,7 +56,7 @@ exports.addNumberToCurrentGame = function(req, res){
   if(auth === 'auth'){
     var user = req.params.user;
     var newNumber = req.params.newNumber;
-    var betToAll = req.params.betToAll;
+    var betTo = (req.params.betToAll).split("");
     var data = {};
     data.user = user;
     data.newNumber = newNumber;
@@ -66,7 +66,7 @@ exports.addNumberToCurrentGame = function(req, res){
       res.json(unauthorized);
     }
     else{
-      currentGame = addNumberToCurrentGame(currentGame, newNumber);
+      currentGame = addNumberToCurrentGame(currentGame, newNumber, betTo);
       res.json(currentGame);
     }
   }
@@ -78,18 +78,22 @@ exports.addNumberToCurrentGame = function(req, res){
 };
 
 
-function addNumberToCurrentGame ( currentGame,  newNumber, bet){
+function addNumberToCurrentGame ( currentGame,  newNumber, betTo){
 
 //----------------------------- update statistics
   currentGame = updateStatistics(currentGame, newNumber);
+
 //----------------------------- update bets
-  currentGame = calculateBets(currentGame,newNumber,bet);
+  currentGame = calculateBets(currentGame,newNumber, betTo);
+
+
+  currentGame = organizeBetNumbers(currentGame , newNumber);
 
 
 
   return currentGame;
 }
-function calculateBets(currentGame,newNumber, bet){
+function calculateBets(currentGame,newNumber, betTo){
   var field = table[newNumber];
   var colorC = field.color;
   var halfC = field.half;
@@ -108,129 +112,148 @@ function calculateBets(currentGame,newNumber, bet){
   var halfP = field.half;
   var parityP = field.parity;
   var rowP = field.row;
-  var dozenP = field.dozen;///**
-//Color
-  if(colorP === colorC || colorC === 'none'){//double the bet
-  currentGame.money -= (currentGame.betRed + currentGame.betBlack);
-    currentGame.betRed*= 2;
-    currentGame.betBlack *=2;
-    if(currentGame.betRed ===0 && currentGame.betBlack===0 ){
-      if(colorC === 'b'){
-        currentGame.betRed = currentGame.minBetDouble;
-      }
-      else{
-        currentGame.betBlack = currentGame.minBetDouble;
-      }
-    }
-  }
-  else{
-    //If the user bet, the money increments the amount of the bet
-    currentGame.money += currentGame.betRed + currentGame.betBlack;
-    currentGame.betRed = 0;
-    currentGame.betBlack =0;
-  }
-//half
-  if(halfP === halfC || halfC === -1){//double the bet
-    currentGame.money -= (currentGame.bet1to18 + currentGame.bet19to36);
-    currentGame.bet1to18*= 2;
-    currentGame.bet19to36 *=2;
-    if(currentGame.bet1to18 ===0 && currentGame.bet19to36===0 ){
-      if(halfP > 18){
-        currentGame.bet1to18 = currentGame.minBetDouble;
-      }
-      else{
-        currentGame.bet19to36 = currentGame.minBetDouble;
-      }
-    }
-  }
-  else{
-    //If the user bet, the money increments the amount of the bet
-    currentGame.money += currentGame.bet1to18 + currentGame.bet19to36;
-    currentGame.bet1to18=0;
-    currentGame.bet19to36=0;
-  }
+  var dozenP = field.dozen;
 
-//parity
-  if(parityP === parityC || parityC ===-1){//double the bet
-    currentGame.money -= (currentGame.betOdd + currentGame.betEven);
-    currentGame.betOdd*= 2;
-    currentGame.betEven *=2;
-    if(currentGame.betOdd ===0 && currentGame.betEven===0 ){
-      if(parityP %2 === 0 ){
-        currentGame.betOdd = currentGame.minBetDouble;
+  if(betTo[0] === (1+"")){
+      //Color
+      if(colorP === colorC || colorC === 'none'){//double the bet
+      currentGame.money -= (currentGame.betRed + currentGame.betBlack);
+        currentGame.betRed*= 2;
+        currentGame.betBlack *=2;
+        if(currentGame.betRed ===0 && currentGame.betBlack===0 ){
+          if(colorC === 'b'){
+            currentGame.betRed = currentGame.minBetDouble;
+          }
+          else{
+            currentGame.betBlack = currentGame.minBetDouble;
+          }
+        }
       }
       else{
-        currentGame.betEven = currentGame.minBetDouble;
+        //If the user bet, the money increments the amount of the bet
+        currentGame.money += currentGame.betRed + currentGame.betBlack;
+        currentGame.betRed = 0;
+        currentGame.betBlack =0;
       }
-    }
-  }
-  else{
-    //If the user bet, the money increments the amount of the bet
-    currentGame.money += currentGame.betOdd + currentGame.betEven;
-    currentGame.betOdd=0; //impar
-    currentGame.betEven=0;
-  }
+    //half
+      if(halfP === halfC || halfC === -1){//double the bet
+        currentGame.money -= (currentGame.bet1to18 + currentGame.bet19to36);
+        currentGame.bet1to18*= 2;
+        currentGame.bet19to36 *=2;
+        if(currentGame.bet1to18 ===0 && currentGame.bet19to36===0 ){
+          if(halfP > 18){
+            currentGame.bet1to18 = currentGame.minBetDouble;
+          }
+          else{
+            currentGame.bet19to36 = currentGame.minBetDouble;
+          }
+        }
+      }
+      else{
+        //If the user bet, the money increments the amount of the bet
+        currentGame.money += currentGame.bet1to18 + currentGame.bet19to36;
+        currentGame.bet1to18=0;
+        currentGame.bet19to36=0;
+      }
 
-///**
-//row
-if(rowP === rowC || rowC === -1){//triple the bet
-  currentGame.money -= (currentGame.betRow1 + currentGame.betRow2 + currentGame.betRow3);
-  currentGame.betRow1*= 3;
-  currentGame.betRow2*= 3;
-  currentGame.betRow3*= 3;
-  if(currentGame.betRow1===0 && currentGame.betRow2===0 && currentGame.betRow3===0 ){
-    if(dozenP === 1 ){
-      currentGame.betRow2=currentGame.minBetTriple;
-      currentGame.betRow3=currentGame.minBetTriple;
-    }
-    else if(dozenP === 2 ){
-      currentGame.betRow1=currentGame.minBetTriple;
-      currentGame.betRow3=currentGame.minBetTriple;
-    }
-    else{//(dozenP === 3 ){
-      currentGame.betRow1=currentGame.minBetTriple;
-      currentGame.betRow2=currentGame.minBetTriple;
-    }
-  }
-}
-else{
-  //If the user bet, the money increments the amount of the bet
-  currentGame.money -= (currentGame.betRow1 + currentGame.betRow2 + currentGame.betRow3);
-  currentGame.money += (Math.max(currentGame.betRow1 , currentGame.betRow2 , currentGame.betRow3)*3);
-  currentGame.betRow1=0;currentGame.betRow2=0;currentGame.betRow3=0;
+    //parity
+      if(parityP === parityC || parityC ===-1){//double the bet
+        currentGame.money -= (currentGame.betOdd + currentGame.betEven);
+        currentGame.betOdd*= 2;
+        currentGame.betEven *=2;
+        if(currentGame.betOdd ===0 && currentGame.betEven===0 ){
+          if(parityP %2 === 0 ){
+            currentGame.betOdd = currentGame.minBetDouble;
+          }
+          else{
+            currentGame.betEven = currentGame.minBetDouble;
+          }
+        }
+      }
+      else{
+        //If the user bet, the money increments the amount of the bet
+        currentGame.money += currentGame.betOdd + currentGame.betEven;
+        currentGame.betOdd=0; //impar
+        currentGame.betEven=0;
+      }
 }
 
-//dozen
-  if(dozenP === dozenC || dozenC === -1){//triple the bet
-    currentGame.money -= (currentGame.betDozen1 + currentGame.betDozen2 + currentGame.betDozen3);
-    currentGame.betDozen1*= 3;
-    currentGame.betDozen2*= 3;
-    currentGame.betDozen3*= 3;
-    if(currentGame.betDozen1===0 && currentGame.betDozen2===0 && currentGame.betDozen3===0 ){
+if(betTo[1] === (1+"")){
+  //row
+  if(rowP === rowC || rowC === -1){//triple the bet
+    currentGame.money -= (currentGame.betRow1 + currentGame.betRow2 + currentGame.betRow3);
+    currentGame.betRow1*= 3;
+    currentGame.betRow2*= 3;
+    currentGame.betRow3*= 3;
+    if(currentGame.betRow1===0 && currentGame.betRow2===0 && currentGame.betRow3===0 ){
       if(dozenP === 1 ){
-        currentGame.betDozen2=currentGame.minBetTriple;
-        currentGame.betDozen3=currentGame.minBetTriple;
+        currentGame.betRow2=currentGame.minBetTriple;
+        currentGame.betRow3=currentGame.minBetTriple;
       }
       else if(dozenP === 2 ){
-        currentGame.betDozen1=currentGame.minBetTriple;
-        currentGame.betDozen3=currentGame.minBetTriple;
+        currentGame.betRow1=currentGame.minBetTriple;
+        currentGame.betRow3=currentGame.minBetTriple;
       }
       else{//(dozenP === 3 ){
-        currentGame.betDozen1=currentGame.minBetTriple;
-        currentGame.betDozen2=currentGame.minBetTriple;
+        currentGame.betRow1=currentGame.minBetTriple;
+        currentGame.betRow2=currentGame.minBetTriple;
       }
     }
   }
   else{
     //If the user bet, the money increments the amount of the bet
-    currentGame.money -= (currentGame.betDozen1 + currentGame.betDozen2 + currentGame.betDozen3);
-    currentGame.money += (Math.max(currentGame.betDozen1 , currentGame.betDozen2 , currentGame.betDozen3)*3);
-    currentGame.betDozen1=0;currentGame.betDozen2=0;currentGame.betDozen3=0;
+    currentGame.money -= (currentGame.betRow1 + currentGame.betRow2 + currentGame.betRow3);
+    currentGame.money += (Math.max(currentGame.betRow1 , currentGame.betRow2 , currentGame.betRow3)*3);
+    currentGame.betRow1=0;currentGame.betRow2=0;currentGame.betRow3=0;
   }
 
+  //dozen
+    if(dozenP === dozenC || dozenC === -1){//triple the bet
+      currentGame.money -= (currentGame.betDozen1 + currentGame.betDozen2 + currentGame.betDozen3);
+      currentGame.betDozen1*= 3;
+      currentGame.betDozen2*= 3;
+      currentGame.betDozen3*= 3;
+      if(currentGame.betDozen1===0 && currentGame.betDozen2===0 && currentGame.betDozen3===0 ){
+        if(dozenP === 1 ){
+          currentGame.betDozen2=currentGame.minBetTriple;
+          currentGame.betDozen3=currentGame.minBetTriple;
+        }
+        else if(dozenP === 2 ){
+          currentGame.betDozen1=currentGame.minBetTriple;
+          currentGame.betDozen3=currentGame.minBetTriple;
+        }
+        else{//(dozenP === 3 ){
+          currentGame.betDozen1=currentGame.minBetTriple;
+          currentGame.betDozen2=currentGame.minBetTriple;
+        }
+      }
+    }
+    else{
+      //If the user bet, the money increments the amount of the bet
+      currentGame.money -= (currentGame.betDozen1 + currentGame.betDozen2 + currentGame.betDozen3);
+      currentGame.money += (Math.max(currentGame.betDozen1 , currentGame.betDozen2 , currentGame.betDozen3)*3);
+      currentGame.betDozen1=0;currentGame.betDozen2=0;currentGame.betDozen3=0;
+    }
+}
+var maxBetRound=Math.max(currentGame.betDozen1,currentGame.betDozen2,currentGame.betDozen3,
+            currentGame.betRow1,currentGame.betRow2,currentGame.betRow3,currentGame.betOdd, currentGame.betEven,
+            currentGame.betRed, currentGame.betBlack, currentGame.bet1to18, currentGame.bet19to36);
 
+if(maxBetRound > currentGame.maxBet){
+    maxBet = maxBetRound;
+}
 
-  //propose bet to numbers:
+  //propose bet to numbers:  35 to 1 from 36 +2 38
+if(betTo[2] === (1+"")){
+  var won = false;
+  for(var i=0;i<30;i++){
+    if(newNumber === currentGame.betNumbers[i]){
+      currentGame.money += ((35 - 25)* currentGame.minBetEach);
+      won = true;
+    }
+  }
+  if(!won){currentGame.money -= (25*currentGame.minBetEach);}
+}
 
   //
   if(currentGame.minLosses > currentGame.money){
@@ -263,6 +286,17 @@ function updateStatistics(currentGame, newNumber){
   return currentGame;
 }
 
+function organizeBetNumbers(currentGame, newNumber){
+  for(var i=0;i< 38 ; i++){
+    var numCurrent = currentGame.betNumbers[i];
+    if(numCurrent === newNumber){
+      currentGame.betNumbers.splice(i,1);
+      currentGame.betNumbers.push(newNumber);
+    }
+  }
+  return currentGame;
+}
+
 function restart(){
   var currentGame={};
   currentGame.casinoName="test";
@@ -274,27 +308,18 @@ function restart(){
 
   //---------------------------- statistics
 
-  //TODO ADD more statistics as max bet, numero de 0s, de negras, %acierto
   //color
-  //zerozero = black
-  //zero = red
+
   currentGame.numRed=0;
   currentGame.numBlack=0;
-  //firstHalf  0 firstHalf 1 secondHalf
-  //zerozero = 1
-  //zero = 0
   currentGame.num1to18=0;
   currentGame.num19to36=0;
-  //parity   1 impar  0 par
-  //zerozero = 1
-  //zero = 0
   currentGame.numOdd=0; //impar
   currentGame.numEven=0;
 
   currentGame.numRow1=0;
   currentGame.numRow2=0;
   currentGame.numRow3=0;
-
   currentGame.numDozen1=0;
   currentGame.numDozen2=0;
   currentGame.numDozen3=0;
@@ -318,7 +343,14 @@ function restart(){
   currentGame.betDozen3=0;
 
   currentGame.minLosses=0;
+  currentGame.maxBet =0;
 
+
+
+  currentGame.betNumbers=['00','0'];
+  for(var i=1;i<=36;i++ ){
+    currentGame.betNumbers.push(i+'');
+  }
 
   currentGame.history=[];
 
