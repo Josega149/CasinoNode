@@ -10,12 +10,15 @@ var http = require('http');
 var path = require('path');
 var cors = require('cors');
 
+console.log(cors);
+
 var app = express();
+app.use(cors());
 
 var roulette = require('./public/javascripts/roulette.js');
 
 // all environments
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3001);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 app.use(express.favicon());
@@ -31,7 +34,6 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-app.use(cors());
 
 app.get('/', routes.index);
 app.get('/users', user.list);

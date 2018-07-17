@@ -1,4 +1,7 @@
-exports.test = function(req, res){var a = {};a.hola = 5;res.json(a);};
+exports.test = function(req, res){var a = {};a.hola = 5;
+  res.json(a);
+  //res.send("hello");
+};
 
 var table = {};
 table['00'] = {color:'none', half:-1,parity:-1,row:-1,dozen:-1};
@@ -299,7 +302,7 @@ function organizeBetNumbers(currentGame, newNumber){
 
 function restart(){
   var currentGame={};
-  currentGame.casinoName="test";
+  currentGame.casinoName="Unicentro Cali Aladin";
   currentGame.minBetDouble = 1000;
   currentGame.minBetTriple = 500;
   currentGame.minBetEach = 100;
@@ -353,6 +356,8 @@ function restart(){
   }
 
   currentGame.history=[];
+
+  /**Mayores y menores seguidas TODO*/
 
   return currentGame;
 }
